@@ -33,7 +33,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
 
             (var requestId, var clientId, var revocationListId) = publishRequest;            
 
-            var issuanceDate = DateTime.UtcNow.ToString(Formats.DateTimeZFormat);
+            var issuanceDate = DateTime.UtcNow.ToString(Formats.DateTimeFormat);
             var credential = new ClrCredential
             {
                 Id = UriUtility.Combine(baseUri, "api", "credentials", requestId),
@@ -43,7 +43,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
                     Id = UriUtility.Combine(baseUri, "api", "issuers", clientId),
                     Type = new[] { "Profile" }
                 },
-                IssuanceDate = issuanceDate,
+                ValidFrom = issuanceDate,
                 AwardedDate = source.IssuedOn.ToString(Formats.DateTimeFormat),
                 Name = source.Name,
                 Partial = source.Partial ?? false,
@@ -70,7 +70,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
             var proofService = new ProofService();
             if (source.Assertions != null && source.Assertions.Any())
             {
-                var credentials = new List<VerifiableCredential>();
+                var credentials = new List<VerifiableCredential2_0>();
                 foreach (var assertion in source.Assertions)
                 {
                     var achievementCredential = new AchievementCredential();
@@ -88,7 +88,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
                         Name = assertion.Achievement.Issuer.Name
                     };
 
-                    achievementCredential.IssuanceDate = issuanceDate;
+                    achievementCredential.ValidFrom = issuanceDate;
                     achievementCredential.Name = assertion.Achievement.Name;
                     achievementCredential.Description = assertion.Achievement.Description;
                     achievementCredential.Endorsement = assertion.Endorsements.ToEndorsementCredentials();

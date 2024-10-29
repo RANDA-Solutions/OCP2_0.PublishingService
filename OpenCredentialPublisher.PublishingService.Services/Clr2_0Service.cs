@@ -36,13 +36,12 @@ namespace OpenCredentialPublisher.PublishingService.Services
             (var requestId, var clientId, var revocationListId) = publishRequest;
 
             var now = DateTime.UtcNow;
-            var issuanceDate = now.ToString(Formats.DateTimeZFormat);
             var issuerId = UriUtility.Combine(baseUri, "api", "issuers", clientId);
             source.Id = UriUtility.Combine(baseUri, "api", "credentials", requestId);
-            if (String.IsNullOrEmpty(source.IssuanceDate))
-                source.IssuanceDate = issuanceDate;
             if (String.IsNullOrEmpty(source.AwardedDate))
                 source.AwardedDate = now.ToString(Formats.DateTimeFormat);
+            if (String.IsNullOrEmpty(source.ValidFrom))
+                source.ValidFrom = now.ToString(Formats.DateTimeFormat);
             if (source.Issuer == null)
             {
                 source.Issuer = new Profile
@@ -67,9 +66,17 @@ namespace OpenCredentialPublisher.PublishingService.Services
                     {
                         foreach (var endorsement in achievement.Endorsement)
                         {
+                            if (String.IsNullOrEmpty(endorsement.AwardedDate))
+                                endorsement.AwardedDate = now.ToString(Formats.DateTimeFormat);
+                            if (String.IsNullOrEmpty(endorsement.ValidFrom))
+                                endorsement.ValidFrom = now.ToString(Formats.DateTimeFormat);
                             await Sign(issuerId, baseUri, publishRequest, endorsement);
                         }
                     }
+                    if (String.IsNullOrEmpty(achievement.AwardedDate))
+                        achievement.AwardedDate = now.ToString(Formats.DateTimeFormat);
+                    if (String.IsNullOrEmpty(achievement.ValidFrom))
+                        achievement.ValidFrom = now.ToString(Formats.DateTimeFormat);
                     await Sign(issuerId, baseUri, publishRequest, achievement);
                     credentials.Add(achievement);
                 }
@@ -104,8 +111,10 @@ namespace OpenCredentialPublisher.PublishingService.Services
             return (key, privateKey, verificationMethod);
         }
 
-        public async Task Sign<T>(string issuerId, Uri verificationMethod, PublishRequest publishRequest, T credential) where T: IVerifiableCredential
+        public async Task Sign<T>(string issuerId, Uri verificationMethod, PublishRequest publishRequest, T credential) where T: IVerifiableCredential2_0
         {
+            
+
             var json = System.Text.Json.JsonSerializer.Serialize(credential, 
                 new JsonSerializerOptions { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
             credential.Proof = new[] { await CreateProofAsync(json, issuerId, verificationMethod, publishRequest) };

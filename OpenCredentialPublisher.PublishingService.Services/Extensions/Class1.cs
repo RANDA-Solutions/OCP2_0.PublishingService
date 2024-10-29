@@ -262,7 +262,7 @@ namespace OpenCredentialPublisher.PublishingService.Services.Extensions
             {
                 Id = endorsement.Id,
                 Issuer = endorsement.Issuer.ToProfile(),
-                IssuanceDate = endorsement.IssuedOn.ToString(Formats.DateTimeFormat),
+                ValidFrom = endorsement.IssuedOn.ToString(Formats.DateTimeFormat),
                 CredentialSubject = new EndorsementSubject
                 {
                     Id = endorsement?.Claim?.Id,

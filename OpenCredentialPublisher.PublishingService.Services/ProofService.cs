@@ -92,7 +92,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
             var proof = document["proof"].DeepClone() as JArray;
             document.Remove("proof");
             var jsonDocument = document.ToString();
-            var canonicalizedDocument = await JsonLd.Normalization.JsonLdHandler.Canonize(jsonDocument, new JsonLd.Normalization.ExpandOptions { Base = "c14n" });
+            var canonicalizedDocument = await JsonLd.Normalization.JsonLdHandler.Canonize(jsonDocument, new JsonLd.Normalization.ExpandOptions { Base = "c14n", KeepFreeFloatingNodes = true });
             StringBuilder documentString = new StringBuilder(canonicalizedDocument);
             using SHA256 sha256 = SHA256.Create();
             byte[] textBytes = Encoding.UTF8.GetBytes(canonicalizedDocument);
@@ -154,7 +154,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
             proofDocument.Remove("proofValue");
             proofDocument.Remove("signature");
 
-            return await JsonLd.Normalization.JsonLdHandler.Canonize(proofDocument.ToString(), new JsonLd.Normalization.ExpandOptions { Base = "c14n" });
+            return await JsonLd.Normalization.JsonLdHandler.Canonize(proofDocument.ToString(), new JsonLd.Normalization.ExpandOptions { Base = "c14n", KeepFreeFloatingNodes = true });
         }
 
         public async Task<Boolean> VerifyProof(string originalJson = null)
