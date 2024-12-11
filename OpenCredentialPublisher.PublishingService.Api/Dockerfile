@@ -7,6 +7,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:3.1-buster AS build
 WORKDIR /src
+RUN --mount=type=secret,id=ado_external_feed,env=VSS_NUGET_EXTERNAL_FEED_ENDPOINTS 
 ENV AZURE_ARTIFACTS_CREDENTIAL_PROVIDER_VERSION="v1.0.0"
 ENV USE_NET6_ARTIFACTS_CREDENTIAL_PROVIDER="false"
 RUN curl -L https://raw.githubusercontent.com/Microsoft/artifacts-credprovider/master/helpers/installcredprovider.sh  | sh
