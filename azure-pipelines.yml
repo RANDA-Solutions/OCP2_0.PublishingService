@@ -1,0 +1,39 @@
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- main
+
+resources:
+- repo: self
+
+pool: default
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '5cc63894-80c7-458f-b948-5de6378f9d7e'
+  imageRepository: 'opencredentialpublisherpublishingserviceapi'
+  containerRegistry: 'randaocpregistry.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/OpenCredentialPublisher.PublishingService.Api/Dockerfile'
+  tag: '$(Build.BuildId)'
+  
+stages:
+- stage: Build
+  variables:
+  - group: OpenCredentialPublisher.Api-Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: '$(dockerRegistryServiceConnection)'
+        repository: '$(imageRepository)'
+        command: 'build'
+        Dockerfile: '$(dockerfilePath)'
+        tags: '$(tag)'
+        arguments: '--secret id=ado_external_feed'
+      env:
+        ado_external_feed: $(ADOFeed)
