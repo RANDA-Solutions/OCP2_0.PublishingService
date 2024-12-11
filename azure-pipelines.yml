@@ -27,6 +27,9 @@ stages:
   - job: Build
     displayName: Build
     steps:
+    - task: DockerInstaller@0
+      inputs:
+        dockerVersion: '27.4.0'
     - task: Docker@2
       inputs:
         containerRegistry: '$(dockerRegistryServiceConnection)'
