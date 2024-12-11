@@ -7,7 +7,6 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:3.1-buster AS build
 WORKDIR /src
-RUN --mount=type=secret,id=ado_external_feed,env=VSS_NUGET_EXTERNAL_FEED_ENDPOINTS 
 ENV AZURE_ARTIFACTS_CREDENTIAL_PROVIDER_VERSION="v1.0.0"
 ENV USE_NET6_ARTIFACTS_CREDENTIAL_PROVIDER="false"
 RUN curl -L https://raw.githubusercontent.com/Microsoft/artifacts-credprovider/master/helpers/installcredprovider.sh  | sh
@@ -17,7 +16,8 @@ COPY ["OpenCredentialPublisher.PublishingService.Data/OpenCredentialPublisher.Pu
 COPY ["OpenCredentialPublisher.PublishingService.Shared/OpenCredentialPublisher.PublishingService.Shared.csproj", "OpenCredentialPublisher.PublishingService.Shared/"]
 COPY ["OpenCredentialPublisher.PublishingService.Services/OpenCredentialPublisher.PublishingService.Services.csproj", "OpenCredentialPublisher.PublishingService.Services/"]
 COPY ["OpenCredentialPublisher.Credentials.Drawing/OpenCredentialPublisher.Credentials.Drawing.csproj", "OpenCredentialPublisher.Credentials.Drawing/"]
-RUN dotnet restore "OpenCredentialPublisher.PublishingService.Api/OpenCredentialPublisher.PublishingService.Api.csproj"
+RUN --mount=type=secret,id=ado_external_feed,env=VSS_NUGET_EXTERNAL_FEED_ENDPOINTS \ 
+	dotnet restore "OpenCredentialPublisher.PublishingService.Api/OpenCredentialPublisher.PublishingService.Api.csproj"
 COPY . .
 WORKDIR "/src/OpenCredentialPublisher.PublishingService.Api"
 RUN dotnet build "OpenCredentialPublisher.PublishingService.Api.csproj" -c Release -o /app/build --no-restore
