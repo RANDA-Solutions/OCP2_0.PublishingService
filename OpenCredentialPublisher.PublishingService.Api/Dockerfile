@@ -21,5 +21,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:3.1-buster-slim
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "OpenCredentialPublisher.PublishingService.Api.dll"]
