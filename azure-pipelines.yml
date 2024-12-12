@@ -22,7 +22,7 @@ stages:
 - stage: Build
   variables:
   - group: OpenCredentialPublisher.Api-Build
-  displayName: Build and push stage
+  displayName: Build
   jobs:
   - job: Build
     displayName: Build
@@ -34,6 +34,4 @@ stages:
         command: 'build'
         Dockerfile: '$(dockerfilePath)'
         tags: '$(tag)'
-        arguments: '--secret id=ado_external_feed'
-      env:
-        ado_external_feed: $(ADOFeed)
+        arguments: '--build-arg Nuget_OCPPassword=$(githubPAT)'
