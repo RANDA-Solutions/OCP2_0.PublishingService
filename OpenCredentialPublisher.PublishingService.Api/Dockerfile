@@ -6,14 +6,14 @@ ARG Nuget_OCPPassword
 
 WORKDIR /src
 
-COPY --link ./nuget.config .
-COPY --link ["OpenCredentialPublisher.PublishingService.Api/OpenCredentialPublisher.PublishingService.Api.csproj", "OpenCredentialPublisher.PublishingService.Api/"]
-COPY --link ["OpenCredentialPublisher.PublishingService.Data/OpenCredentialPublisher.PublishingService.Data.csproj", "OpenCredentialPublisher.PublishingService.Data/"]
-COPY --link ["OpenCredentialPublisher.PublishingService.Shared/OpenCredentialPublisher.PublishingService.Shared.csproj", "OpenCredentialPublisher.PublishingService.Shared/"]
-COPY --link ["OpenCredentialPublisher.PublishingService.Services/OpenCredentialPublisher.PublishingService.Services.csproj", "OpenCredentialPublisher.PublishingService.Services/"]
-COPY --link ["OpenCredentialPublisher.Credentials.Drawing/OpenCredentialPublisher.Credentials.Drawing.csproj", "OpenCredentialPublisher.Credentials.Drawing/"]
+COPY ./nuget.config .
+COPY ["OpenCredentialPublisher.PublishingService.Api/OpenCredentialPublisher.PublishingService.Api.csproj", "OpenCredentialPublisher.PublishingService.Api/"]
+COPY ["OpenCredentialPublisher.PublishingService.Data/OpenCredentialPublisher.PublishingService.Data.csproj", "OpenCredentialPublisher.PublishingService.Data/"]
+COPY ["OpenCredentialPublisher.PublishingService.Shared/OpenCredentialPublisher.PublishingService.Shared.csproj", "OpenCredentialPublisher.PublishingService.Shared/"]
+COPY ["OpenCredentialPublisher.PublishingService.Services/OpenCredentialPublisher.PublishingService.Services.csproj", "OpenCredentialPublisher.PublishingService.Services/"]
+COPY ["OpenCredentialPublisher.Credentials.Drawing/OpenCredentialPublisher.Credentials.Drawing.csproj", "OpenCredentialPublisher.Credentials.Drawing/"]
 RUN dotnet restore "OpenCredentialPublisher.PublishingService.Api/OpenCredentialPublisher.PublishingService.Api.csproj"
-COPY --link . .
+COPY . .
 WORKDIR "/src/OpenCredentialPublisher.PublishingService.Api"
 RUN dotnet publish "OpenCredentialPublisher.PublishingService.Api.csproj" -c Release -o /app/publish --no-restore
 
@@ -21,5 +21,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:3.1-buster-slim
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
-COPY --link --from=publish /app/publish .
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "OpenCredentialPublisher.PublishingService.Api.dll"]
