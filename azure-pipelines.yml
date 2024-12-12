@@ -33,5 +33,6 @@ stages:
         repository: '$(imageRepository)'
         command: 'build'
         Dockerfile: '$(dockerfilePath)'
+        buildContext: $(System.DefaultWorkingDirectory)
         tags: '$(tag)'
         arguments: '--build-arg Nuget_OCPPassword=$(githubPAT)'
