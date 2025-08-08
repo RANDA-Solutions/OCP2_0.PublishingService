@@ -62,7 +62,7 @@
 
     public static class Formats
     {
-        public const string DateTimeZFormat = "yyyy-MM-dd'T'HH:mm:ssK";
+        public const string DateTimeZFormat = "yyyy-MM-dd'T'HH:mm:ssZ";
         //public const string DateTimeFormat = "yyyy-MM-dd";
         public const string DateTimeFormat = "yyyy-MM-dd'T'HH:mm:sszzz";
 

@@ -285,16 +285,6 @@ namespace OpenCredentialPublisher.PublishingService.Services.Extensions
         }
     }
 
-    public static class StringExtensions
-    {
-        public static Image ToImage(this string image)
-        {
-            if (String.IsNullOrWhiteSpace(image)) 
-                return default;
-            return new Image { Id = image, Type = "Image" };
-        } 
-    }
-
     public static class VerifiableCredentialExtensions
     {
         public static async Task CreateProof(this VerifiableCredential credential, OcpSigningCredentials credentials, IKeyStore keyStore, ProofPurposeEnum proofPurpose, Uri verificationMethod, String challenge)

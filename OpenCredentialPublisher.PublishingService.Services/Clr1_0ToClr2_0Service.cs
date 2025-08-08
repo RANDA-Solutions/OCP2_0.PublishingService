@@ -36,7 +36,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
         {
             (var requestId, var clientId, var revocationListId) = publishRequest;            
 
-            var issuanceDate = DateTime.UtcNow.ToString(Formats.DateTimeFormat);
+            var issuanceDate = DateTime.UtcNow.ToString(Formats.DateTimeZFormat);
             var credential = new ClrCredential
             {
                 Issuer = new Profile
@@ -45,7 +45,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
                     Type = new[] { "Profile" }
                 },
                 ValidFrom = issuanceDate,
-                AwardedDate = source.IssuedOn.ToString(Formats.DateTimeFormat),
+                AwardedDate = source.IssuedOn.ToString(Formats.DateTimeZFormat),
                 Name = source.Name,
                 Partial = source.Partial ?? false,
             };
@@ -57,8 +57,42 @@ namespace OpenCredentialPublisher.PublishingService.Services
             credential.CredentialSubject = subject;
 
             subject.Id = GetId();
-            var assocations = new List<Association>();
 
+            var learnerIdentifiers = new List<IdentityObject>();
+            if (source.Learner != null)
+            {
+                if (!String.IsNullOrEmpty(source.Learner.Email))
+                {
+                    learnerIdentifiers.Add(new IdentityObject
+                    {
+                        IdentityHash = source.Learner.Email,
+                        Type = "emailAddress",
+                        Hashed = false
+                    });
+                }
+                if (!String.IsNullOrEmpty(source.Learner.SourcedId))
+                {
+                    learnerIdentifiers.Add(new IdentityObject
+                    {
+                        IdentityHash = source.Learner.SourcedId,
+                        Type = "sourcedId",
+                        Hashed = false
+                    });
+                }
+                if (!String.IsNullOrEmpty(source.Learner.Name))
+                {
+                    learnerIdentifiers.Add(new IdentityObject
+                    {
+                        IdentityHash = source.Learner.Name,
+                        Type = "name",
+                        Hashed = false
+                    });
+                }
+            }
+
+            subject.Identifier = learnerIdentifiers.ToArray();
+            
+            var assocations = new List<Association>();
             if (source.Achievements != null && source.Achievements.Any())
             {
                 var achievements = new List<Achievement>();
@@ -89,7 +123,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
                         },
                         Name = assertion.Achievement.Issuer.Name
                     };
-
+                    achievementCredential.AwardedDate = assertion.IssuedOn?.ToString(Formats.DateTimeZFormat) ?? credential.AwardedDate;
                     achievementCredential.ValidFrom = issuanceDate;
                     achievementCredential.Name = assertion.Achievement.Name;
                     achievementCredential.Description = assertion.Achievement.Description;
@@ -114,8 +148,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
                     };
                     achievementCredential.CredentialSubject = achievementSubject;
 
-                    if (assertion.Recipient != null)
-                        achievementSubject.Identifier = new[] { assertion.Recipient.ToIdentityObject() };
+                    achievementSubject.Identifier = learnerIdentifiers.ToArray();
 
                     if (assertion.Image != null)
                     {

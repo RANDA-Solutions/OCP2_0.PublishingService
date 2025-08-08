@@ -47,10 +47,8 @@ namespace OpenCredentialPublisher.PublishingService.Services
 
             var now = DateTime.UtcNow;
             source.Id = UriUtility.Combine(baseUri, "api", "credentials", requestId);
-            if (String.IsNullOrEmpty(source.AwardedDate))
-                source.AwardedDate = now.ToString(Formats.DateTimeFormat);
-            if (String.IsNullOrEmpty(source.ValidFrom))
-                source.ValidFrom = now.ToString(Formats.DateTimeFormat);
+            source.AwardedDate = source.AwardedDate.ToDateTimeZString(now);
+            source.ValidFrom = source.ValidFrom.ToDateTimeZString(now);
 
             var issuerId = source.Issuer?.Id ?? Guid.NewGuid().ToString();
             var sourceIssuer = await AssignIssuerAsync(source.Issuer, appBaseUri, issuerId, publishRequest.ClientId);
@@ -71,18 +69,13 @@ namespace OpenCredentialPublisher.PublishingService.Services
                     {
                         foreach (var endorsement in achievement.Endorsement)
                         {
-                            if (String.IsNullOrEmpty(endorsement.AwardedDate))
-                                endorsement.AwardedDate = now.ToString(Formats.DateTimeFormat);
-                            if (String.IsNullOrEmpty(endorsement.ValidFrom))
-                                endorsement.ValidFrom = now.ToString(Formats.DateTimeFormat);
+                            endorsement.AwardedDate = endorsement.AwardedDate.ToDateTimeZString(now);
+                            endorsement.ValidFrom = endorsement.ValidFrom.ToDateTimeZString(now);
                             await SignEndorsement(appBaseUri, publishRequest, issuerId, endorsement);
                         }
                     }
-                    if (String.IsNullOrEmpty(achievement.AwardedDate))
-                        achievement.AwardedDate = now.ToString(Formats.DateTimeFormat);
-                    if (String.IsNullOrEmpty(achievement.ValidFrom))
-                        achievement.ValidFrom = now.ToString(Formats.DateTimeFormat);
-
+                    achievement.AwardedDate = achievement.AwardedDate.ToDateTimeZString(now);
+                    achievement.ValidFrom = achievement.ValidFrom.ToDateTimeZString(now);
                     var achievementIssuer = await AssignIssuerAsync(achievement.Issuer, appBaseUri, issuerId, publishRequest.ClientId);
                     achievement.Issuer = achievementIssuer.profile;
 
