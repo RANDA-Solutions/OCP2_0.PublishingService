@@ -9,7 +9,14 @@ using System.Threading.Tasks;
 
 namespace OpenCredentialPublisher.PublishingService.Services
 {
-    public class IssuerService
+    public interface IIssuerService
+    {
+        Task<Issuer> CreateIssuerAsync(string issuerId, string clientId);
+        Task<Issuer> GetIssuerAsync(int issuerId);
+        Task<Issuer> GetIssuerAsync(string issuerId, string clientId, bool createIfNotFound = true);
+    }
+
+    public class IssuerService : IIssuerService
     {
         private readonly OcpDbContext _dbContext;
 
@@ -18,19 +25,19 @@ namespace OpenCredentialPublisher.PublishingService.Services
             _dbContext = dbContext;
         }
 
-        public async Task<Issuer> GetIssuerAsync(string issuerId, string clientId, bool createIfNotFound =  true)
+        public async Task<Issuer> GetIssuerAsync(string issuerId, string clientId, bool createIfNotFound = true)
         {
             var issuer = await _dbContext.Issuers
                 .Include(i => i.SigningKeys)
                 .FirstOrDefaultAsync(i => i.IssuerUuid == issuerId);
-            
+
             if (issuer == null)
             {
                 if (createIfNotFound)
                     return await CreateIssuerAsync(issuerId, clientId);
                 throw new KeyNotFoundException($"Issuer with ID {issuerId} not found.");
             }
-            
+
             return issuer;
         }
 

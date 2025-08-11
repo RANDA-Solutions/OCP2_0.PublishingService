@@ -58,7 +58,7 @@ namespace OpenCredentialPublisher.PublishingService.Functions
             builder.Services.AddScoped<IQueueService, AzureQueueService>();
             builder.Services.AddScoped<IFileStoreService, AzureBlobStoreService>();
             builder.Services.AddScoped<IKeyStore, AzureKeyVaultDatabaseRegistryService>();
-            builder.Services.AddScoped<IssuerService>();
+            builder.Services.AddScoped<IIssuerService, IssuerService>();
             builder.Services.AddScoped<ProofService>();
             builder.Services.AddScoped<Clr1_0ToClr2_0Service>();
             builder.Services.AddScoped<Clr2_0Service>();

@@ -190,8 +190,8 @@ namespace OpenCredentialPublisher.PublishingService.Api
             services.AddTransient<IRevocationListService, RevocationListService>();
             services.AddTransient<IDynamicClientRegistrationService, DynamicClientRegistrationService>();
             services.AddTransient<IKeyStore, AzureKeyVaultDatabaseRegistryService>();
-            services.AddTransient<ProofService>();
-            services.AddTransient<IssuerService>();
+            services.AddScoped<IIssuerService, IssuerService>();
+            services.AddScoped<ProofService>();
 
             services.AddSingleton<ICorsPolicyService>((container) => {
                 var logger = container.GetRequiredService<ILogger<DefaultCorsPolicyService>>();
