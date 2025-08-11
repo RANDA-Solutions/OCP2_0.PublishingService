@@ -28,9 +28,9 @@ namespace OpenCredentialPublisher.PublishingService.Services
 {
     public class Clr2_0Service : ITransformationService<ClrCredential, ClrCredential>
     {
-        private readonly IssuerService _issuerService;
+        private readonly IIssuerService _issuerService;
         private readonly ProofService _proofService;
-        public Clr2_0Service(ProofService proofService, IssuerService issuerService) 
+        public Clr2_0Service(ProofService proofService, IIssuerService issuerService)
         {
             _issuerService = issuerService;
             _proofService = proofService;
@@ -126,7 +126,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
             var issuer = await _issuerService.GetIssuerAsync(issuerId);
             if (issuer == null)
                 throw new KeyNotFoundException($"Issuer with ID {issuerId} not found.");
-            if (issuer.SigningKeys == null || !issuer.SigningKeys.Any(x => !(x.Revoked || x.Expired)))
+            if (issuer.SigningKeys == null || !issuer.SigningKeys.Any(x => !(x.Revoked || x.Expired) && x.KeyType == CryptoSuites.Ed25519Signature2020 && x.PrivateKey != null))
             {
                 (var publicKey, var privateKey) = CryptoMethods.GenerateEd25519Keys();
 
@@ -136,22 +136,26 @@ namespace OpenCredentialPublisher.PublishingService.Services
 
                 key.PublicKey = CryptoMethods.Base58EncodeEd25519PublicKey(publicKey);
                 key.PrivateKey = CryptoMethods.Base58EncodeBytes(privateKey);
-                key.KeyFragment = $"key-{Guid.NewGuid(),8:N}";
+
                 if (issuer.SigningKeys == null)
                     issuer.SigningKeys = new List<SigningKey>();
 
                 issuer.SigningKeys.Add(key);
             }
 
-            var signingKey = issuer.SigningKeys.FirstOrDefault();
+            var signingKey = issuer.SigningKeys.FirstOrDefault(x => !(x.Revoked || x.Expired) && x.KeyType == CryptoSuites.Ed25519Signature2020 && x.PrivateKey != null);
+            if (String.IsNullOrEmpty(signingKey.KeyFragment))
+            {
+                signingKey.KeyFragment = $"key-{Guid.NewGuid(),8:N}";
+            }
             var privateKeyString = CryptoMethods.Base58DecodeString(signingKey.PrivateKey);
 
             return (signingKey, privateKeyString);
         }
 
-        public async Task Sign<T>(int issuerId, string keyController, PublishRequest publishRequest, T credential) where T: IVerifiableCredential2_0
+        public async Task Sign<T>(int issuerId, string keyController, PublishRequest publishRequest, T credential) where T : IVerifiableCredential2_0
         {
-            var json = System.Text.Json.JsonSerializer.Serialize(credential, 
+            var json = System.Text.Json.JsonSerializer.Serialize(credential,
                 new JsonSerializerOptions { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
             credential.Proof = new[] { await CreateProofAsync(json, issuerId, keyController, publishRequest) };
         }

@@ -7,6 +7,7 @@
     "id": "urn:uuid:6e700ba8-ce46-4ad4-b00b-1a256c979e96",
     "name": "Student3 Demo",
     "sourcedId": "11234700",
+    "email": "test.student@nd.gov",
     "studentId": "102444777",
     "address": {
       "streetAddress": "111 South Park",

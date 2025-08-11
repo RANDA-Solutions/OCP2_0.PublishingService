@@ -66,7 +66,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
                     learnerIdentifiers.Add(new IdentityObject
                     {
                         IdentityHash = source.Learner.Email,
-                        Type = "emailAddress",
+                        IdentityType = "emailAddress",
                         Hashed = false
                     });
                 }
@@ -75,7 +75,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
                     learnerIdentifiers.Add(new IdentityObject
                     {
                         IdentityHash = source.Learner.SourcedId,
-                        Type = "sourcedId",
+                        IdentityType = "sourcedId",
                         Hashed = false
                     });
                 }
@@ -84,7 +84,7 @@ namespace OpenCredentialPublisher.PublishingService.Services
                     learnerIdentifiers.Add(new IdentityObject
                     {
                         IdentityHash = source.Learner.Name,
-                        Type = "name",
+                        IdentityType = "name",
                         Hashed = false
                     });
                 }

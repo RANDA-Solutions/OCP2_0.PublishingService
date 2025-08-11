@@ -1,3 +1,8 @@
+#if !NETCOREAPP3_1
+#error This test project must target netcoreapp3.1 for Microsoft.EntityFrameworkCore.InMemory 3.1.0
+#endif
+using Microsoft.EntityFrameworkCore;
+using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using OpenCredentialPublisher.Credentials.Clrs.v1_0.Clr;
@@ -21,62 +26,49 @@ namespace OpenCredentialPublisher.Credentials.Tests
 {
     public class Clr2Tests
     {
-        private string clrTestJson = "";
-        private string vcClr2 = "";
-
-        private string clrCredentialJson = "";
-
-        [SetUp]
-        public void Setup()
-        {
-            using var stream = new StreamReader(typeof(Clr2Tests).Assembly.GetManifestResourceStream($"{typeof(Clr2Tests).Namespace}.Files.clr2Test.json"));
-            clrTestJson = stream.ReadToEnd();
-
-            using var stream2 = new StreamReader(typeof(Clr2Tests).Assembly.GetManifestResourceStream($"{typeof(Clr2Tests).Namespace}.Files.clr2VCTest.json"));
-            vcClr2 = stream2.ReadToEnd();
-
-            using var stream3 = new StreamReader(typeof(Clr2Tests).Assembly.GetManifestResourceStream($"{typeof(Clr2Tests).Namespace}.Files.clrCredential.json"));
-            clrCredentialJson = stream3.ReadToEnd();
-        }
-
-        //[Test]
-        //public async Task ConvertClr()
-        //{
-        //    var testClr = JsonConvert.DeserializeObject<ClrDType>(clrTestJson);
-        //    Assert.IsNotNull(testClr);
-        //    var transformService = new Clr1_0ToClr2_0Service();
-        //    var requestId = Guid.NewGuid().ToString();
-        //    var clientId = Guid.NewGuid().ToString();
-        //    var publicId = Guid.NewGuid().ToString();
-        //    var appBaseUri = "https://localhost";
-        //    var clr2 = await transformService.Transform(appBaseUri, new PublishRequest { RequestId = requestId, ClientId = clientId, RevocationListId = 1 }, testClr);
-        //    Assert.IsNotNull(clr2);
-        //    var json = JsonConvert.SerializeObject(clr2, Formatting.Indented);
-        //    System.IO.File.WriteAllText($"c:\\temp\\clr2\\{DateTime.Now:yyyy-MM-ddHHmmss}.json", json);
-
-        //    var proofService = new ProofService();
-        //    var result = await proofService.VerifyProof(json);
-        //    Assert.IsTrue(result);
-        //}
-
         [Test]
-        public async Task VerifyClrProof()
+        public async Task TransformClr1ToClr2_ContainsEmailAddressIdentityObject()
         {
+            var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<OcpDbContext>()
+                .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+                .Options;
+            using var dbContext = new OcpDbContext(options);
+
+            var keyStoreMock = new Moq.Mock<IKeyStore>();
+            var issuerService = new OpenCredentialPublisher.PublishingService.Services.IssuerService(dbContext, keyStoreMock.Object);
+
             var proofService = new ProofService();
-            var result = await proofService.VerifyProof(vcClr2);
-            Assert.IsTrue(result);
+            var clr2Service = new Clr2_0Service(proofService, issuerService);
+            var transformService = new Clr1_0ToClr2_0Service(clr2Service);
+
+            string clr1Json;
+            using (var stream = new StreamReader(typeof(Clr2Tests).Assembly.GetManifestResourceStream($"{typeof(Clr2Tests).Namespace}.Files.nd-clr-transcript.json")))
+            {
+                clr1Json = stream.ReadToEnd();
+            }
+            var clr1 = JsonConvert.DeserializeObject<ClrDType>(clr1Json);
+            Assert.IsNotNull(clr1, "Failed to deserialize nd-clr-transcript.json");
+
+            var requestId = Guid.NewGuid().ToString();
+            var clientId = Guid.NewGuid().ToString();
+            var appBaseUri = "https://localhost";
+            var publishRequest = new PublishRequest { RequestId = requestId, ClientId = clientId, RevocationListId = 1 };
+
+            var clr2 = await transformService.Transform(appBaseUri, publishRequest, clr1);
+            Assert.IsNotNull(clr2, "Transform returned null");
+            Assert.IsNotNull(clr2.CredentialSubject, "CredentialSubject is null");
+            Assert.IsNotNull(clr2.CredentialSubject.Identifier, "CredentialSubject.Identifier is null");
+
+            bool hasEmail = false;
+            foreach (var idObj in clr2.CredentialSubject.Identifier)
+            {
+                if (idObj != null && string.Equals(idObj.IdentityType, "emailAddress", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasEmail = true;
+                    break;
+                }
+            }
+            Assert.IsTrue(hasEmail, "No IdentityObject with IdentityType 'emailAddress' found in CredentialSubject.Identifier");
         }
-
-        //[Test]
-        //public async Task ClrCredentialSerialization()
-        //{
-        //    var transformService = new Clr2_0Service();
-        //    var result = await transformService.Transform("https://localhost", new PublishRequest { RequestId = Guid.NewGuid().ToString(), ClientId = Guid.NewGuid().ToString(), RevocationListId = 1 }, System.Text.Json.JsonSerializer.Deserialize<ClrCredential>(clrCredentialJson));
-        //    Assert.IsNotNull(result);
-        //    var signedClr = System.Text.Json.JsonSerializer.Serialize(result,
-        //        new JsonSerializerOptions { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-
-        //    Assert.IsTrue(signedClr.Contains("ClrSubject"));
-        //}
     }
 }

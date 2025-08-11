@@ -8,6 +8,7 @@
     "name": "Student3 Demo",
     "sourcedId": "11234700",
     "studentId": "102444777",
+    "email": "test.student@nd.gov",
     "address": {
       "streetAddress": "111 South Park",
       "addressRegion": "ND",
